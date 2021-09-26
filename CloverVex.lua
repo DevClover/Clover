@@ -397,7 +397,7 @@ class "Vex"
 
 
 local QData = {Type = _G.SPELLTYPE_LINE, Delay = 0.15, Radius = 160, Range = 1200, Speed = 2500, Collision = false}
-local QspellData = {speed = 2500, range = 1200, delay = 0.15, Radius = 160, collision = {nil}, type = "linear"}
+local QspellData = {speed = 2500, range = 1200, delay = 0.15, radius = 160, collision = {nil}, type = "linear"}
 
 
 local EData = {Type = _G.SPELLTYPE_CIRCLE, Delay = 0.25, Radius = 150, Range = 800, Speed = 1300, Collision = false}
