@@ -34,7 +34,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 1.00
+    local Version = 1.01
     
     local Files = {
         Lua = {
@@ -455,7 +455,7 @@ end
 function Vex:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "CloverVex", name = "CloverVex"})
-self.Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 1.01"}})
 
 
 self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
