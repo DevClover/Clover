@@ -75,7 +75,7 @@ do
     
     end
     
-    --AutoUpdate()
+    AutoUpdate()
 
 end 
 
