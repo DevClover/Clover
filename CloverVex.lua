@@ -34,7 +34,7 @@ end
 -- [ AutoUpdate ]
 do
     
-    local Version = 1.01
+    local Version = 1.00
     
     local Files = {
         Lua = {
@@ -75,7 +75,7 @@ do
     
     end
     
-    AutoUpdate()
+   --AutoUpdate()
 
 end 
 
@@ -423,6 +423,11 @@ function R2Dmg()
 	return R2Dmg
 end
 
+function WDmg()
+	local LvL = myHero:GetSpellData(_W).level
+	local WDmg = (({80, 120, 160, 200, 240})[LvL] + 0.3 * myHero.ap)	
+	return WDmg
+end
 
 
 local PredLoaded = false
@@ -455,7 +460,7 @@ end
 function Vex:LoadMenu()                     	
 --MainMenu
 self.Menu = MenuElement({type = MENU, id = "CloverVex", name = "CloverVex"})
-self.Menu:MenuElement({name = " ", drop = {"Version 1.01"}})
+self.Menu:MenuElement({name = " ", drop = {"Version 0.05"}})
 
 
 self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
@@ -464,7 +469,7 @@ self.Menu:MenuElement({type = MENU, id = "Combo", name = "Combo Settings"})
 
 	self.Menu.Combo:MenuElement({id = "UseQ", name = "[Q]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseW",name = "[W]", value = true})
-	self.Menu.Combo:MenuElement({id = "W Count", name = "W When Can Hit X Enemies ", value = 2, min = 1, max = 5, step = 1})	
+	self.Menu.Combo:MenuElement({id = "WCount", name = "W When Can Hit X Enemies ", value = 2, min = 1, max = 5, step = 1})	
 	self.Menu.Combo:MenuElement({id = "UseE", name = "[E]", value = true})
 	self.Menu.Combo:MenuElement({id = "UseR", name = "[R] if killable", value = true})	
 
@@ -475,7 +480,7 @@ self.Menu:MenuElement({type = MENU, id = "Harass", name = "Harass Settings"})
 
 	self.Menu.Harass:MenuElement({id = "UseQ", name = "[Q]", value = true})		
 	self.Menu.Harass:MenuElement({id = "UseW", name = "[W]", value = true})
-	self.Menu.Harass:MenuElement({id = "W Count", name = "W When Can Hit X Enemies ", value = 2, min = 1, max = 5, step = 1})
+	self.Menu.Harass:MenuElement({id = "WCount", name = "W When Can Hit X Enemies ", value = 2, min = 1, max = 5, step = 1})
 	self.Menu.Harass:MenuElement({id = "UseE", name = "[E]", value = true})	
 	
 self.Menu:MenuElement({type = MENU, id = "Auto", name = "Auto Settings"})
@@ -550,7 +555,9 @@ function Vex:Tick()
 		if Mode == "Combo" then
 			self:Combo()
 			--self:CountR()
-			test2 = 1
+			
+		elseif Mode == "Harass" then
+			self:Harass()
 		elseif Mode == "LaneClear" then
 			--self:JungleClear()
 			--self:Clear()	
@@ -649,8 +656,8 @@ if target == nil then return end
 		
 		end	
 
-		if myHero.pos:DistanceTo(target.pos) <= 475 and self.Menu.Combo.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+		if self.Menu.Combo.UseW:Value() and Ready(_W) then
+				self:ComboW()
 		end
 		
 		
@@ -710,22 +717,22 @@ if target == nil then return end
 
 		if myHero.pos:DistanceTo(target.pos) <= 1200 and self.Menu.Harass.UseQ:Value() and Ready(_Q) then
 				if self.Menu.Misc.Pred.Change:Value() == 1 then
-					local pred = GetGamsteronPrediction(target, EData, myHero)
-					if pred.Hitchance >= self.Menu.Misc.Pred.PredE:Value()+1 then
-						Control.CastSpell(HK_E, pred.CastPosition)
+					local pred = GetGamsteronPrediction(target, QData, myHero)
+					if pred.Hitchance >= self.Menu.Misc.Pred.PredQ:Value()+1 then
+						Control.CastSpell(HK_Q, pred.CastPosition)
 					end
 				elseif self.Menu.Misc.Pred.Change:Value() == 2 then
-					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, EspellData)
-					if pred.CastPos and ConvertToHitChance(self.Menu.Misc.Pred.PredE:Value(), pred.HitChance) then
-						Control.CastSpell(HK_E, pred.CastPos)
+					local pred = _G.PremiumPrediction:GetPrediction(myHero, target, QspellData)
+					if pred.CastPos and ConvertToHitChance(self.Menu.Misc.Pred.PredQ:Value(), pred.HitChance) then
+						Control.CastSpell(HK_Q, pred.CastPos)
 					end
 				else
-					local EPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.15, Radius = 160, Range = 1200, Speed = 2500, Collision = false})
-					EPrediction:GetPrediction(target, myHero)
-					if EPrediction:CanHit(self.Menu.Misc.Pred.PredE:Value() + 1) then
-						Control.CastSpell(HK_E, EPrediction.CastPosition)
+					local QPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.15, Radius = 160, Range = 1200, Speed = 2500, Collision = false})
+					QPrediction:GetPrediction(target, myHero)
+					if QPrediction:CanHit(self.Menu.Misc.Pred.PredQ:Value() + 1) then
+						Control.CastSpell(HK_Q, QPrediction.CastPosition)
 					end				
-				end
+				end	
 			
 		end
 
@@ -750,8 +757,8 @@ if target == nil then return end
 				
 		end
 
-		if myHero.pos:DistanceTo(target.pos) <= 475 and self.Menu.Harass.UseW:Value() and Ready(_W) then
-				Control.CastSpell(HK_W)
+		if self.Menu.Harass.UseW:Value() and Ready(_W) then
+				self:HarassW()
 		end
 
 
@@ -795,6 +802,30 @@ end
 
 
 
+function Vex:ComboW()   
+	for i, target in ipairs(GetEnemyHeroes()) do 
+		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) and Ready(_W) then	
+			local count = GetBuffedEnemyCount(475, myHero)
+			if count >= self.Menu.Combo.WCount:Value() then
+				Control.CastSpell(HK_W)	
+			end
+		end	
+	end	
+end
+
+
+function Vex:HarassW()   
+	for i, target in ipairs(GetEnemyHeroes()) do 
+		if target and myHero.pos:DistanceTo(target.pos) <= 475 and IsValid(target) and Ready(_W) then	
+			local count = GetBuffedEnemyCount(475, myHero)
+			if count >= self.Menu.Harass.WCount:Value() then
+				Control.CastSpell(HK_W)	
+			end
+		end	
+	end	
+end
+
+
 
 
 function Vex:AutoW()   
@@ -816,11 +847,12 @@ local target = GetTarget(2000)
 	if IsValid(target) then
 		if myHero.pos:DistanceTo(target.pos) <= (1500+(500*myHero:GetSpellData(_R).level)) and self.Menu.Auto.AutoR1:Value() and Ready(_R) then
 				local Rdmg = R1Dmg()+R2Dmg()+20
+				--local Fdmg = R1Dmg()+R2Dmg()+Wdmg()+20
 				local R2dmg = R2Dmg()
 				local Rcast = clock()-Rrecast
 				local vexRbuff = GetBuffData(myHero,"vexrresettimer")
 				
-				if (myHero:GetSpellData(_R).name == "VexR" and Rdmg >= target.health)  or (myHero:GetSpellData(_R).name == "VexR" and vexRbuff.duration<= 0.5  and HasBuff(myHero, "vexrresettimer")) then	
+				if (myHero:GetSpellData(_R).name == "VexR" and not Ready(_W) and Rdmg >= target.health)  or (myHero:GetSpellData(_R).name == "VexR" and vexRbuff.duration<= 0.5  and HasBuff(myHero, "vexrresettimer")) then	
 					if self.Menu.Misc.Pred.Change:Value() == 1 then
 						local pred = GetGamsteronPrediction(target, RData, myHero)
 						if pred.Hitchance >= self.Menu.Misc.Pred.PredR:Value()+1 then
@@ -836,12 +868,42 @@ local target = GetTarget(2000)
 						RPrediction:GetPrediction(target, myHero)
 						if RPrediction:CanHit(self.Menu.Misc.Pred.PredR:Value() + 1) then
 							Control.CastSpell(HK_R, RPrediction.CastPosition)
-						end				
-				end					
+						end
+					end	
+
+
+				end
+--[[			
+				elseif myHero:GetSpellData(_R).name == "VexR" and Ready(_W) and Fdmg >= target.health then
+					if self.Menu.Misc.Pred.Change:Value() == 1 then
+						local pred = GetGamsteronPrediction(target, RData, myHero)
+						if pred.Hitchance >= self.Menu.Misc.Pred.PredR:Value()+1 then
+							Control.CastSpell(HK_R, pred.CastPosition)
+						end
+					elseif self.Menu.Misc.Pred.Change:Value() == 2 then
+						local pred = _G.PremiumPrediction:GetPrediction(myHero, target, RspellData)
+						if pred.CastPos and ConvertToHitChance(self.Menu.Misc.Pred.PredR:Value(), pred.HitChance) then
+							Control.CastSpell(HK_R, pred.CastPos)
+						end
+					else
+						local RPrediction = GGPrediction:SpellPrediction({Type = GGPrediction.SPELLTYPE_LINE, Delay = 0.25, Radius = 130, Range = (1500+(500*myHero:GetSpellData(_R).level)), Speed = 1600, Collision = true, CollisionTypes = {GGPrediction.COLLISION_ENEMYHERO}})
+						RPrediction:GetPrediction(target, myHero)
+						if RPrediction:CanHit(self.Menu.Misc.Pred.PredR:Value() + 1) then
+							Control.CastSpell(HK_R, RPrediction.CastPosition)
+						end
+					end	
+					
+					if myHero.pos:DistanceTo(target.pos)<= 475 then
+						Control.CastSpell(HK_W)
+					end
+
+				end	
+
+]]--				
 
 		end
 	end
-	end
+	
 end
 
 
